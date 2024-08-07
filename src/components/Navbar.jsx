@@ -8,7 +8,26 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.auth); // auth: store.js에 정의된 reducer 객체요소의 키
 
-  const [isAuth, setIsAuth] = useState(!userInfo); // userInfo가 없는 상태 초기화
+  const [isAuth, setIsAuth] = useState(false); // userInfo가 없는 상태 초기화
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('userToken');
+    const storedPicture = localStorage.getItem('userPicture');
+    const storedEmail = localStorage.getItem('userEmail');
+    const storedName = localStorage.getItem('userName');
+
+    if (storedToken) {
+      dispatch(
+        login({
+          userName: storedName,
+          userImage: storedPicture,
+          userToken: storedToken,
+          userEmail: storedEmail,
+        })
+      );
+      setIsAuth(true);
+    }
+  }, [dispatch]);
 
   const handleLoginSuccess = (credentialResponse) => {
     const userData = jwtDecode(credentialResponse.credential);
@@ -24,21 +43,6 @@ const Navbar = () => {
 
     setIsAuth(true);
   };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('userToken');
-    if (storedUser) {
-      dispatch(
-        login({
-          userName: userInfo.name,
-          userImage: userInfo.picture,
-          userToken: userInfo.jti,
-          userEmail: userInfo.email,
-        })
-      );
-      setIsAuth(true);
-    }
-  }, [dispatch]);
 
   if (window.google) {
     window.google.accounts.id.initialize({
@@ -66,9 +70,9 @@ const Navbar = () => {
         }}
       /> */}
 
-      {isAuth ? (
+      {userInfo.userToken ? (
         <div>
-          <h2>{userInfo.name}님 로그인</h2>
+          <h2>{userInfo.userName}님 로그인</h2>
           <button onClick={handleLogout}>LOGOUT</button>
         </div>
       ) : (
